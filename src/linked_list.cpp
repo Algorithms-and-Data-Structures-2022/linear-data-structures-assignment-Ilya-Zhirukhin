@@ -39,21 +39,46 @@ namespace assignment {
 
   bool LinkedList::Insert(int index, int value) {
 
-    if (index >= 0 && index < size_) {
-      if (index != 0 && index != size_ - 1){
-        int find = 0;
-        Node* cur_dd = front_;
-        for (Node* current = front_; find != index && current->next != nullptr; /* */) {
-          current = current->next;
-          cur_dd = current;
-          find++;
-        }
-        return cur_dd;
-      }
+    // index = 0    => вставка в начало списка
+    // index = size => вставка в конец списка
 
+    // проверка на выход за границы позиции вставки
+    if (index < 0 || index > size_) {
+      return false;
     }
-    return false;
+
+    auto* node = new Node(value);
+
+    if (front_ == nullptr) {
+      // пустой список: "начальный" и "конечный" узлы одинаковы
+      front_ = node;
+      back_ = node;
+
+    } else {
+      // вставка в "начало" списка
+      if (index == 0) {
+        node->next = front_;
+        front_ = node;
+
+      } else if (index == size_) {
+        // вставка в "конец" списка
+        back_->next = node;
+        back_ = node;
+
+      } else {
+        // вставка "внутрь" списка
+        auto* prev_node = FindNode(index - 1);
+
+        node->next = prev_node->next;
+        prev_node->next = node;
+      }
+    }
+
+    size_ += 1;
+
+    return true;
   }
+
 
   bool LinkedList::Set(int index, int new_value) {
     if(index >= 0 && index < size_){
@@ -71,8 +96,46 @@ namespace assignment {
   }
 
   std::optional<int> LinkedList::Remove(int index) {
-    // Write your code here ...
-    return std::nullopt;
+    // проверка на выход за пределы списка
+    if (index < 0 || index >= size_) {
+      return std::nullopt;
+    }
+
+    // удаление из "начала" списка
+    if (index == 0) {
+      auto* remove_node = front_;
+      const int remove_value = remove_node->value;
+
+      // сдвигаем "начало" списка на следующий узел
+      front_ = front_->next;
+
+      // высвобождаем выделенную под удаляемый узел память
+      delete remove_node;
+
+      // уменьшаем размер списка
+      size_ -= 1;
+
+      return remove_value;
+    }
+
+    // удаление из любой другой позиции
+
+    auto* prev_node = FindNode(index - 1);
+
+    // находим удаляемый узел и его значение
+    auto* removed_node = prev_node->next;
+    const int removed_value = removed_node->value;
+
+    // предыдущий узел "указываем" на следующий после удаляемого узла
+    prev_node->next = removed_node->next;
+
+    // высвобождаем выделенную под удаляемый узел память
+    delete removed_node;
+
+    // уменьшаем размер списка
+    size_ -= 1;
+
+    return removed_value;
   }
 
   void LinkedList::Clear() {
